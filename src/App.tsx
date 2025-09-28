@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import Students from './components/Students';
@@ -9,33 +10,22 @@ import Grades from './components/Grades';
 import Fees from './components/Fees';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'students':
-        return <Students />;
-      case 'teachers':
-        return <Teachers />;
-      case 'classes':
-        return <Classes />;
-      case 'attendance':
-        return <Attendance />;
-      case 'grades':
-        return <Grades />;
-      case 'fees':
-        return <Fees />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderPage()}
-    </Layout>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/students" element={<Students />} />
+          <Route path="/teachers" element={<Teachers />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route path="/attendance" element={<Attendance />} />
+          <Route path="/grades" element={<Grades />} />
+          <Route path="/fees" element={<Fees />} />
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 

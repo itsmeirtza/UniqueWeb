@@ -1,1 +1,1 @@
-UniqueWeb
+Your School Name

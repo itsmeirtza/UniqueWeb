@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Search, DollarSign, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Search, DollarSign, CheckCircle, AlertCircle, Clock, Calendar } from 'lucide-react';
 import { mockStudents, mockFees } from '../data/mockData';
 import { Fee } from '../types';
 
@@ -51,10 +52,11 @@ const Fees: React.FC = () => {
     }
   };
 
-  const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
-  const paidFees = fees.filter(fee => fee.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
-  const pendingFees = fees.filter(fee => fee.status === 'pending').reduce((sum, fee) => sum + fee.amount, 0);
-  const overdueFees = fees.filter(fee => fee.status === 'overdue').reduce((sum, fee) => sum + fee.amount, 0);
+  // Statistics - count only, no amounts
+  const totalFeesCount = fees.length;
+  const paidFeesCount = fees.filter(fee => fee.status === 'paid').length;
+  const pendingFeesCount = fees.filter(fee => fee.status === 'pending').length;
+  const overdueFeesCount = fees.filter(fee => fee.status === 'overdue').length;
 
   const markAsPaid = (feeId: string) => {
     setFees(fees.map(fee => 
@@ -64,193 +66,198 @@ const Fees: React.FC = () => {
     ));
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <motion.div 
+        variants={cardVariants}
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+      >
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Fee Management</h2>
-          <p className="text-gray-600">Track and manage student fee payments</p>
+          <h2 className="text-3xl font-bold text-white gradient-text">Fee Management</h2>
+          <p className="text-white/70">Track student payment status and due dates</p>
         </div>
-        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+        <motion.button 
+          className="neon-button flex items-center space-x-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           <Plus className="w-4 h-4" />
           <span>Add Fee Record</span>
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Fees</p>
-              <p className="text-2xl font-bold text-gray-900">Rs. {totalFees.toLocaleString()}</p>
-            </div>
-            <DollarSign className="w-8 h-8 text-gray-500" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Collected</p>
-              <p className="text-2xl font-bold text-green-600">Rs. {paidFees.toLocaleString()}</p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-500" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">Rs. {pendingFees.toLocaleString()}</p>
-            </div>
-            <Clock className="w-8 h-8 text-yellow-500" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Overdue</p>
-              <p className="text-2xl font-bold text-red-600">Rs. {overdueFees.toLocaleString()}</p>
-            </div>
-            <AlertCircle className="w-8 h-8 text-red-500" />
-          </div>
-        </div>
+      {/* Statistics - Count only, no amounts */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[
+          { title: 'Total Records', value: totalFeesCount, icon: DollarSign, color: 'bg-blue-500' },
+          { title: 'Paid', value: paidFeesCount, icon: CheckCircle, color: 'bg-green-500' },
+          { title: 'Pending', value: pendingFeesCount, icon: Clock, color: 'bg-yellow-500' },
+          { title: 'Overdue', value: overdueFeesCount, icon: AlertCircle, color: 'bg-red-500' }
+        ].map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div 
+              key={stat.title}
+              variants={cardVariants}
+              className="card-3d p-6 group cursor-pointer"
+              whileHover={{ scale: 1.02, rotateY: 5 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-white/70 mb-1">{stat.title}</p>
+                  <motion.p 
+                    className="text-3xl font-bold text-white"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: index * 0.1 + 0.3 }}
+                  >
+                    {stat.value}
+                  </motion.p>
+                </div>
+                <motion.div 
+                  className={`${stat.color} p-3 rounded-xl shadow-lg`}
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Icon className="w-6 h-6 text-white" />
+                </motion.div>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <motion.div variants={cardVariants} className="card-3d p-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-4 h-4" />
             <input
               type="text"
               placeholder="Search by student name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="glass-input w-full pl-10"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="glass-input"
           >
-            <option value="">All Status</option>
-            <option value="paid">Paid</option>
-            <option value="pending">Pending</option>
-            <option value="overdue">Overdue</option>
+            <option value="" className="bg-gray-800 text-white">All Status</option>
+            <option value="paid" className="bg-gray-800 text-white">Paid ✅</option>
+            <option value="pending" className="bg-gray-800 text-white">Pending ⏳</option>
+            <option value="overdue" className="bg-gray-800 text-white">Overdue ❌</option>
           </select>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Fee Records */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">Fee Records</h3>
+      {/* Fee Records - NO AMOUNTS SHOWN */}
+      <motion.div variants={cardVariants} className="card-3d overflow-hidden">
+        <div className="p-6 border-b border-white/10">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-primary-400" />
+            Payment Status Records
+          </h3>
+          <p className="text-white/60 text-sm mt-1">Status and payment dates only - amounts are private</p>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-black/20 border-b border-white/10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
                   Student
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
                   Class
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
                   Fee Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
                   Due Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th className="px-6 py-4 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
+                  Last Payment Date
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredFees.map((fee) => (
-                <tr key={fee.id} className="hover:bg-gray-50">
+            <tbody className="divide-y divide-white/5">
+              {filteredFees.map((fee, index) => (
+                <motion.tr 
+                  key={fee.id} 
+                  className="hover:bg-white/5 transition-colors"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-blue-600 font-semibold text-sm">
+                      <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white font-semibold text-sm">
                           {getStudentName(fee.studentId).charAt(0)}
                         </span>
                       </div>
-                      <span className="font-medium text-gray-900">{getStudentName(fee.studentId)}</span>
+                      <span className="font-medium text-white">{getStudentName(fee.studentId)}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
                     {getStudentClass(fee.studentId)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {fee.type}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    Rs. {fee.amount.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
                     {new Date(fee.dueDate).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(fee.status)}`}>
-                      {getStatusIcon(fee.status)}
-                      <span className="ml-1 capitalize">{fee.status}</span>
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      fee.status === 'paid' ? 'status-paid' :
+                      fee.status === 'overdue' ? 'status-overdue' : 'status-unpaid'
+                    }`}>
+                      {fee.status === 'paid' ? '✅ Paid' :
+                       fee.status === 'overdue' ? '❌ Overdue' : '⏳ Not Paid'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {fee.status === 'pending' && (
-                      <button
-                        onClick={() => markAsPaid(fee.id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors text-xs"
-                      >
-                        Mark as Paid
-                      </button>
-                    )}
-                    {fee.status === 'paid' && fee.paidDate && (
-                      <span className="text-green-600 text-xs">
-                        Paid on {new Date(fee.paidDate).toLocaleDateString()}
-                      </span>
-                    )}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
+                    {fee.status === 'paid' && fee.paidDate 
+                      ? new Date(fee.paidDate).toLocaleDateString()
+                      : fee.status === 'overdue'
+                      ? 'Overdue'
+                      : 'Not paid yet'
+                    }
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Payment Summary */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Monthly Collection Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">Rs. {paidFees.toLocaleString()}</p>
-            <p className="text-sm text-green-700">Total Collected</p>
-          </div>
-          <div className="text-center p-4 bg-yellow-50 rounded-lg">
-            <p className="text-2xl font-bold text-yellow-600">Rs. {pendingFees.toLocaleString()}</p>
-            <p className="text-sm text-yellow-700">Pending Collection</p>
-          </div>
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">
-              {totalFees > 0 ? ((paidFees / totalFees) * 100).toFixed(1) : 0}%
-            </p>
-            <p className="text-sm text-blue-700">Collection Rate</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
